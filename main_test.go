@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"testing"
 
 	"gorm.io/gorm"
@@ -22,17 +21,10 @@ func TestGORM(t *testing.T) {
 
 	ctx, cancelFunc := context.WithCancel(ctx)
 	cancelFunc()
-
+	var rowCount int
+	tableName := "fake_table"
 	err := DB.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		var result User
-		if err := tx.First(&result, user.ID).Error; err != nil {
-			t.Errorf("Failed, got error: %v", err)
-		}
-		user.Name = "foobar"
-		user.ID = 0
-		tx.Create([]User{user})
-
-		return errors.New("some error")
+		return tx.Table(tableName).Select("count(1)").Scan(&rowCount).Error
 	})
 
 	t.Error(err)
